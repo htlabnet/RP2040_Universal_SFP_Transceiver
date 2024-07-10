@@ -1,0 +1,15 @@
+name: Workflow
+on: push
+
+jobs:
+  workflow-add-version:
+    name: Add Version
+    uses: ./.github/workflows/version.yml
+    secrets: inherit
+
+  workflow-build:
+    name: Pico SDK Build
+    needs: workflow-add-version
+    uses: ./.github/workflows/pico-sdk-build.yml
+    secrets: inherit
+

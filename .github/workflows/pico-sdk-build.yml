@@ -1,0 +1,52 @@
+name: Pico SDK Build
+on: workflow_call
+
+env:
+  TZ: "Asia/Tokyo"
+  PROJECT_DIR: "Firmware/RP2040_Universal_SFP_Transceiver"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Create Directory
+      run: |
+        mkdir code sdk
+
+    - name: Install Toolchain
+      run: |
+        sudo apt update
+        sudo apt install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential
+
+    - name: Setup SDK
+      working-directory: sdk
+      run: |
+        git clone https://github.com/raspberrypi/pico-sdk.git --branch master --depth 1
+        git -C pico-sdk submodule update --init
+        echo "PICO_SDK_PATH=$(pwd)/pico-sdk/" >> $GITHUB_ENV
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: code
+
+    - name: CMake
+      working-directory: code
+      run: |
+        mkdir -p ${PROJECT_DIR}/build
+        cd ${PROJECT_DIR}/build
+        cmake .. -DCMAKE_BUILD_TYPE=Debug
+
+    - name: Build
+      working-directory: code
+      run:  |
+        cd ${PROJECT_DIR}/build
+        make -j2
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: Build
+        path: code/${{ env.PROJECT_DIR }}/build/*.uf2
+
