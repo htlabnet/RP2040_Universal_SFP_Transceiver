@@ -1,0 +1,56 @@
+;// ######################################################################
+;//    HTLAB.NET RP2040 Universal SFP Transceiver Firmware
+;//
+;//    TITLE : SFP_TRANSMITTER.PIO
+;//    ABOUT : 10bit Serializer
+;// ######################################################################
+
+.program tx10b
+
+; An 10bit transmit program.
+    pull                 
+    out pins, 1       [1]
+    out pins, 1       [1]
+    out pins, 1       [1]
+    out pins, 1       [1]
+    out pins, 1       [1]
+    out pins, 1       [1]
+    out pins, 1       [1]
+    out pins, 1       [1]
+    out pins, 1       [1]
+    out pins, 1       [0]
+
+
+% c-sdk {
+#include "hardware/clocks.h"
+
+static inline void tx10b_program_init(PIO pio, uint sm, uint offset, uint pin_tx, uint baud) {
+    pio_sm_set_pins_with_mask(pio, sm, 1u << pin_tx, 1u << pin_tx);
+    pio_sm_set_pindirs_with_mask(pio, sm, 1u << pin_tx, 1u << pin_tx);
+    pio_gpio_init(pio, pin_tx);
+
+    pio_sm_config c = tx10b_program_get_default_config(offset);
+
+    sm_config_set_out_shift(&c, false, false, 32);   // Left shit
+
+    sm_config_set_out_pins(&c, pin_tx, 1);
+
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+
+    float div = (float)clock_get_hz(clk_sys) / (2 * baud);
+    sm_config_set_clkdiv(&c, div);
+
+    pio_sm_init(pio, sm, offset, &c);
+
+    //pio_sm_set_enabled(pio, sm, true);    // ここではSM有効にしない
+}
+
+static inline void tx_10b_blocking(PIO pio, uint sm, uint32_t c) {
+    pio_sm_put_blocking(pio, sm, c);
+}
+
+static inline void tx_10b_nblocking(PIO pio, uint sm, uint32_t c) {
+    pio_sm_put(pio, sm, c);
+}
+
+%}

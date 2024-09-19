@@ -1,2 +1,4 @@
 build/
 .vscode/settings.json
+src/sfp/sfp_transmitter.pio.h
+src/sfp/sfp_receiver.pio.h
