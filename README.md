@@ -19,7 +19,7 @@
 ```bash
 mkdir build
 cd build
-cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug --fresh
+cmake .. -G Ninja --fresh
 ninja
 ```
 
@@ -38,6 +38,12 @@ Arduino IDEで「RP2040_Universal_SFP_Transceiver.ino」を開く。
 
 ボード種別を「Generic RP2040」にする。
 
-CPU Speedを「300MHz (Overclock)」にする。
+ポートはデフォルトの場合、USBドライブ経由の書き込みになるので、特に指定しなくてもOK。
+
+Boot Stage 2 を「W25Q16JVxQ QSPI /4」にする。
+
+CPU Speed は「133MHz」のままにする（コード中でクロックアップしているため）
+
+Upload Method は Default (UF2)の場合、「RPI-RP2」が見える状態にして書き込みを行う。
 
 
