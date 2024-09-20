@@ -21,8 +21,8 @@ void board_initialize() {
     //vreg_set_voltage(VREG_VOLTAGE_1_25);
     sleep_ms(10);
 
-    // クロック周波数を320MHzから変更する場合は rx.pio の修正が必要
-    set_sys_clock_khz(320000, true);
+    // クロック周波数を変更する場合は sfp_receiver.pio の調整が必要
+    set_sys_clock_khz(300000, true);
 
     // SFP0
     gpio_init(BOARD_PIN_SFP_RD);
@@ -63,30 +63,36 @@ void board_initialize() {
     gpio_init(BOARD_PIN_GPIO0);
     gpio_set_dir(BOARD_PIN_GPIO0, GPIO_IN);
     gpio_pull_down(BOARD_PIN_GPIO0);
+
     gpio_init(BOARD_PIN_GPIO1);
     gpio_set_dir(BOARD_PIN_GPIO1, GPIO_OUT);
-    //gpio_pull_down(BOARD_PIN_GPIO1);
+
     gpio_init(BOARD_PIN_GPIO2);
-    gpio_set_dir(BOARD_PIN_GPIO2, GPIO_OUT);
-    //gpio_pull_down(BOARD_PIN_GPIO2);
+    gpio_set_dir(BOARD_PIN_GPIO2, GPIO_IN);
+    gpio_pull_down(BOARD_PIN_GPIO2);
+
     gpio_init(BOARD_PIN_GPIO3);
     gpio_set_dir(BOARD_PIN_GPIO3, GPIO_OUT);
-    //gpio_pull_down(BOARD_PIN_GPIO3);
+
     gpio_init(BOARD_PIN_GPIO4);
     gpio_set_dir(BOARD_PIN_GPIO4, GPIO_IN);
     gpio_pull_down(BOARD_PIN_GPIO4);
+
     gpio_init(BOARD_PIN_GPIO5);
-    gpio_set_dir(BOARD_PIN_GPIO5, GPIO_IN);
-    gpio_pull_down(BOARD_PIN_GPIO5);
+    gpio_set_dir(BOARD_PIN_GPIO5, GPIO_OUT);
+
     gpio_init(BOARD_PIN_GPIO25);
     gpio_set_dir(BOARD_PIN_GPIO25, GPIO_IN);
     gpio_pull_down(BOARD_PIN_GPIO25);
+
     gpio_init(BOARD_PIN_GPIO26);
     gpio_set_dir(BOARD_PIN_GPIO26, GPIO_IN);
     gpio_pull_down(BOARD_PIN_GPIO26);
+    
     gpio_init(BOARD_PIN_GPIO27);
     gpio_set_dir(BOARD_PIN_GPIO27, GPIO_IN);
     gpio_pull_down(BOARD_PIN_GPIO27);
+
     gpio_init(BOARD_PIN_GPIO28);
     gpio_set_dir(BOARD_PIN_GPIO28, GPIO_IN);
     gpio_pull_down(BOARD_PIN_GPIO28);

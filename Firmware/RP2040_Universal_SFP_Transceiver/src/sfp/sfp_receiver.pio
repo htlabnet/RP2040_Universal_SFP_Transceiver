@@ -7,24 +7,23 @@
 
 .program rx10b
 ; An 10bit receive program
-; Run at 320MHz
-; 320MHz / 16cycle = 20Mbps
-; Serial speed 20Mbps (50ns)
+; Run at 300MHz / div:2 = 150MHz
+; 150MHz / 15cycle = 10Mbps
+; Serial speed 10Mbps (100ns)
 
 start:
     wait 0 pin 0
     wait 1 pin 0
 
 wait_low1:                  
-    nop [3]                 ; delay 1/4 bit
-wait_low2:                  ; 1Loop = 16cycle (50ns)
-    nop [7]
+    nop [3]                 ; delay about 1/4 bit
+wait_low2:                  ; 1Loop = 15cycle (100ns)
+    nop [6]
     in PINS,1   [6]         ; High
     jmp PIN wait_low2
     
-wait_high:                  ; 1Loop = 16cycle (50ns)
+wait_high:                  ; 1Loop = 15cycle (100ns)
     in PINS,1               ; input Low
-    jmp PIN wait_low1
     jmp PIN wait_low1
     jmp PIN wait_low1
     jmp PIN wait_low1
@@ -60,7 +59,7 @@ static inline void rx10b_program_init(PIO pio, uint sm, uint offset, uint pin) {
     sm_config_set_in_shift(&c, false, true, 10);
     sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
 
-    sm_config_set_clkdiv(&c, 1);
+    sm_config_set_clkdiv(&c, 2);    // div:2
     
     pio_sm_init(pio, sm, offset, &c);
     pio_sm_set_enabled(pio, sm, true);

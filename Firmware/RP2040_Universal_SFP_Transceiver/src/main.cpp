@@ -116,8 +116,7 @@
 #include "version.h"
 #include "board/pin.h"
 #include "board/board.h"
-#include "sfp/sfp_transmitter.h"
-#include "sfp/sfp_receiver.h"
+#include "sfp/sfp.h"
 //
 // ######################################################################
 //
@@ -149,8 +148,8 @@ int main() {
     sleep_ms(1000);
 
 
-    sfp_transmitter_initialize();  // 送信処理初期化
-    sfp_receiver_initialize();  // 受信処理初期化
+    sfp_transmitter_initialize();   // 送信処理初期化
+    sfp_receiver_initialize();      // 受信処理初期化
 
 
 //
@@ -163,29 +162,29 @@ void loop() {
 //
 // ######################## Main(Loop) Function #########################
 //
-    static bool locked1 = false;   // 自機のロック状態
-    static uint32_t lp_cnt = 0;
+    static lock_state_t ls = {false, false};    // ロック状態
+    static uint32_t lp_cnt = 0;                 // LED点滅制御用カウンタ
 
-    while (true) {  // Loop Period = 0.5us
+    while (true) {
 
         // 送信処理
-        sfp_transmitter_main(locked1);
+        sfp_transmitter_main(ls);
 
         // 受信処理
-        sfp_receiver_main(&locked1);
+        sfp_receiver_main(&ls);
 
-        // 自機アンロック中はRXU点滅、ロック時はRXU点灯
-        if (!locked1) {
-            gpio_put(BOARD_PIN_LED_RXU, lp_cnt & 1 << 19);
+        // 自機ロック状態をLED表示
+        if (ls.myself) {
+            gpio_put(BOARD_PIN_LED_RXU, 1);                 // ロック中：RXU点灯
         } else {
-            gpio_put(BOARD_PIN_LED_RXU, 1);
+            gpio_put(BOARD_PIN_LED_RXU, lp_cnt & 1 << 19);  // アンロック中：RXU点滅
         }
 
-        // TX_FLT検出でTXU点滅、TX_FLT非検出でTXU点灯
+        // TX_FLT状態をLED表示
         if (gpio_get(BOARD_PIN_SFP_TX_FLT)) {
-            gpio_put(BOARD_PIN_LED_TXU, lp_cnt & 1 << 19);
+            gpio_put(BOARD_PIN_LED_TXU, lp_cnt & 1 << 19);  // TX_FLT検出：TXU点滅
         } else {
-            gpio_put(BOARD_PIN_LED_TXU, 1);
+            gpio_put(BOARD_PIN_LED_TXU, 1);                 // TX_FLT非検出：TXU点灯
         }
 
         lp_cnt++;

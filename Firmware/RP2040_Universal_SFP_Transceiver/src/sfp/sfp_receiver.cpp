@@ -5,7 +5,7 @@
 //    ABOUT : SFP Receive tasks
 // ######################################################################
 #include "hardware/pio.h"
-#include "sfp_receiver.h"
+#include "sfp.h"
 #include "sfp_receiver.pio.h"
 #include "../board/pin.h"
 
@@ -116,29 +116,36 @@ void sfp_receiver_initialize() {
 }
 
 
-void sfp_receiver_main(bool* locked1) {
+void sfp_receiver_main(lock_state_t* ls) {
     // 受信FIFOが空なら処理しない
     if (pio_sm_is_rx_fifo_empty(pio, sm0)) return;
 
     // 受光信号低下時は強制アンロック
-    if (gpio_get(BOARD_PIN_SFP_LOS)) *locked1 = false;
+    if (gpio_get(BOARD_PIN_SFP_LOS)) ls->myself = false;
 
     read10b = rx10b_program_nbget10b(pio, sm0);                     // [31:10]:zero, [9:0]:data
-    if (*locked1) {
+    if (ls->myself) {
+        // ロック状態
         switch (tbl_8b10b_dec(read10b, &data_8b)) {
             case 0:                                                 // Valid data
                 gpio_put(BOARD_PIN_GPIO1, (data_8b & 0b00000010));      // RawData1
+                gpio_put(BOARD_PIN_GPIO3, (data_8b & 0b00000100));      // RawData2
+                gpio_put(BOARD_PIN_GPIO5, (data_8b & 0b00001000));      // RawData3
                 gpio_put(BOARD_PIN_LED_RXD, (data_8b & 0b00000010));    // RawData1
+                ls->yourself = data_8b & (1 << 6);                  // 対向のロック状態
                 break;
-            case 1: *locked1 = false; lock_cnt = 0; break;           // Undefined
+            case 1: ls->myself = false; lock_cnt = 0; break;        // Undefined
             case 2: break;                                          // K28.5
             default: break;
         }
     } else {
+        // アンロック状態
         gpio_put(BOARD_PIN_GPIO1, 0);
+        gpio_put(BOARD_PIN_GPIO3, 0);
+        gpio_put(BOARD_PIN_GPIO5, 0);
         gpio_put(BOARD_PIN_LED_RXD, 0);
         if (((read10b & 0x3FF) == DEF_K28_5_RDN) || ((read10b & 0x3FF) == DEF_K28_5_RDP)) {
-            if (++lock_cnt == 5) { *locked1 = true; }                // K28.5シンボルを5回連続検出でロック状態に遷移
+            if (++lock_cnt == 5) { ls->myself = true; }             // K28.5シンボルを5回連続検出でロック状態に遷移
         } else {
             pio_sm_restart(pio, sm0); lock_cnt = 0;                 // Retry
         }
