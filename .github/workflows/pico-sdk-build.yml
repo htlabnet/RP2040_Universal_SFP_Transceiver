@@ -36,7 +36,7 @@ jobs:
       run: |
         mkdir -p ${PROJECT_DIR}/build
         cd ${PROJECT_DIR}/build
-        cmake .. -DCMAKE_BUILD_TYPE=Debug
+        cmake ..
 
     - name: Build
       working-directory: code
